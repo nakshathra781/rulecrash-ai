@@ -1,0 +1,18 @@
+# Secret keys
+.env
+.env.*
+!.env.example
+
+# Frontend packages
+frontend/node_modules/
+frontend/dist/
+
+# Python files
+backend/venv/
+backend/__pycache__/
+*.pyc
+
+# VS Code and Windows files
+.vscode/
+Thumbs.db
+.DS_Store
