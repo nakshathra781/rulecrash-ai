@@ -687,3 +687,53 @@
   font-size: 0.85rem;
   line-height: 1.5;
 }
+.ai-analysis-panel {
+  margin-top: 28px;
+  padding: 24px;
+  border: 1px solid rgba(124, 108, 255, 0.3);
+  border-radius: 18px;
+  background: rgba(93, 75, 230, 0.07);
+}
+
+.ai-analysis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ai-source-badge {
+  padding: 7px 12px;
+  border: 1px solid rgba(124, 108, 255, 0.45);
+  border-radius: 999px;
+  color: #b8afff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.risk-summary {
+  margin-bottom: 22px;
+}
+
+.risk-summary h3,
+.recommendations-section h3 {
+  margin-bottom: 8px;
+}
+
+.risk-summary p {
+  color: #aeb9d4;
+  line-height: 1.7;
+}
+
+.recommendation-list {
+  margin: 12px 0 0;
+  padding-left: 22px;
+  color: #c5cee2;
+}
+
+.recommendation-list li {
+  margin-bottom: 12px;
+  padding-left: 6px;
+  line-height: 1.6;
+}

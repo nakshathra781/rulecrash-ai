@@ -204,6 +204,36 @@ if (currentPage === "results" && simulationResults) {
     ))
   )}
 </div>
+{simulationResults.policyAnalysis && (
+  <section className="ai-analysis-panel">
+    <div className="ai-analysis-header">
+      <p className="section-label">AI policy analysis</p>
+
+      <span className="ai-source-badge">
+        {simulationResults.analysisSource === "gemini"
+          ? "Analysed by Gemini"
+          : "Local fallback"}
+      </span>
+    </div>
+
+    <div className="risk-summary">
+      <h3>Main policy risk</h3>
+      <p>{simulationResults.policyAnalysis.riskSummary}</p>
+    </div>
+
+    <div className="recommendations-section">
+      <h3>Recommended changes</h3>
+
+      <ol className="recommendation-list">
+        {simulationResults.policyAnalysis.recommendedChanges.map(
+          (change, index) => (
+            <li key={`${change}-${index}`}>{change}</li>
+          )
+        )}
+      </ol>
+    </div>
+  </section>
+)}
 
           <div className="results-actions">
             <button
