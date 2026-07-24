@@ -17,7 +17,46 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
+class ImprovedPolicyRules(BaseModel):
+    refund_days: int = Field(
+        description="Improved maximum refund period in days."
+    )
 
+    invoice_required: bool = Field(
+        description="Whether an invoice is required in the improved policy."
+    )
+
+    photo_required: bool = Field(
+        description=(
+            "Whether damaged products require photographic proof "
+            "in the improved policy."
+        )
+    )
+
+    manager_threshold: int = Field(
+        description=(
+            "Improved manager-approval threshold. "
+            "Use 0 when approval is not required."
+        )
+    )
+
+    single_refund_rule: bool = Field(
+        description=(
+            "Whether only one refund is allowed per order."
+        )
+    )
+
+    alternative_proof_allowed: bool = Field(
+        description=(
+            "Whether verified payment proof can replace an invoice."
+        )
+    )
+
+    cross_channel_protection: bool = Field(
+        description=(
+            "Whether duplicate refunds are blocked across all channels."
+        )
+    )
 class PolicyAnalysis(BaseModel):
     refund_days: int = Field(
         description=(
@@ -73,7 +112,12 @@ class PolicyAnalysis(BaseModel):
             "safer and fairer."
         )
     )
-
+    improved_rules: ImprovedPolicyRules = Field(
+        description=(
+            "A safer and fairer structured version of the policy "
+            "that can be tested by the simulation engine."
+        )
+    )
 
 def analyze_policy(policy: str) -> dict:
     prompt = f"""
@@ -88,6 +132,13 @@ Important instructions:
 4. Cross-channel protection is true only when the policy clearly
    says duplicate requests are blocked centrally across all channels.
 5. Give exactly three practical recommended changes.
+6. Also generate improved_rules that implement the recommendations.
+7. The improved refund period must be at least 14 days when the
+   current period is shorter than 14 days.
+8. The improved policy must accept verified alternative proof.
+9. The improved policy must block duplicate refunds across all channels.
+10. Keep invoice, photo and single-refund requirements unless changing
+    them is necessary for fairness or safety.
 
 REFUND POLICY:
 {policy}

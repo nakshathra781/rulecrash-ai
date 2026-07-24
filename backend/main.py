@@ -38,6 +38,35 @@ def home():
     }
 
 
+def normalize_rules(rules: dict) -> dict:
+    """Convert Gemini rules into the format used by the simulator."""
+
+    manager_threshold = rules.get("manager_threshold", 0)
+
+    return {
+        "refund_days": rules.get("refund_days", 30),
+        "invoice_required": rules.get("invoice_required", False),
+        "photo_required": rules.get("photo_required", False),
+        "manager_threshold": (
+            manager_threshold
+            if manager_threshold > 0
+            else None
+        ),
+        "single_refund_rule": rules.get(
+            "single_refund_rule",
+            False,
+        ),
+        "alternative_proof_allowed": rules.get(
+            "alternative_proof_allowed",
+            False,
+        ),
+        "cross_channel_protection": rules.get(
+            "cross_channel_protection",
+            False,
+        ),
+    }
+
+
 @app.post("/simulate")
 def simulate_workflow(request: SimulationRequest):
     valid_personas = {
@@ -64,57 +93,137 @@ def simulate_workflow(request: SimulationRequest):
     try:
         ai_analysis = analyze_policy(request.policy)
 
-        policy_settings = {
-            "refund_days": ai_analysis["refund_days"],
-            "invoice_required": ai_analysis["invoice_required"],
-            "photo_required": ai_analysis["photo_required"],
+        current_policy_settings = normalize_rules(
+            ai_analysis
+        )
 
-            # Gemini returns 0 when there is no manager threshold.
-            # The simulation engine expects None in that situation.
-            "manager_threshold": (
-                ai_analysis["manager_threshold"]
-                if ai_analysis["manager_threshold"] > 0
-                else None
-            ),
-
-            "single_refund_rule": ai_analysis[
-                "single_refund_rule"
-            ],
-            "alternative_proof_allowed": ai_analysis[
-                "alternative_proof_allowed"
-            ],
-            "cross_channel_protection": ai_analysis[
-                "cross_channel_protection"
-            ],
-        }
+        improved_policy_settings = normalize_rules(
+            ai_analysis["improved_rules"]
+        )
 
     except Exception as error:
         print(f"Gemini analysis failed: {error}")
 
         analysis_source = "keyword_fallback"
-        policy_settings = read_policy(request.policy)
+
+        current_policy_settings = read_policy(
+            request.policy
+        )
+
+        # Safe local improvements when Gemini is unavailable.
+        improved_policy_settings = {
+            **current_policy_settings,
+            "refund_days": max(
+                current_policy_settings["refund_days"],
+                14,
+            ),
+            "single_refund_rule": True,
+            "alternative_proof_allowed": True,
+            "cross_channel_protection": True,
+        }
 
         ai_analysis = {
             "risk_summary": (
                 "Gemini was temporarily unavailable, so RuleCrash "
                 "used its local policy parser."
             ),
-            "recommended_changes": [],
+            "recommended_changes": [
+                "Accept verified alternative proof of purchase.",
+                (
+                    "Block duplicate refund requests across "
+                    "all channels."
+                ),
+                (
+                    "Use a fairer refund period of at least "
+                    "14 days."
+                ),
+            ],
         }
 
-    results = run_simulation(
+    # Test the original policy.
+    before_results = run_simulation(
         policy=request.policy,
         personas=request.personas,
         simulation_count=request.simulation_count,
-        policy_settings=policy_settings,
+        seed=42,
+        policy_settings=current_policy_settings,
     )
 
-    results["analysisSource"] = analysis_source
+    # Test the improved policy using the same customers.
+    after_results = run_simulation(
+        policy=request.policy,
+        personas=request.personas,
+        simulation_count=request.simulation_count,
+        seed=42,
+        policy_settings=improved_policy_settings,
+    )
 
-    results["policyAnalysis"] = {
-        "rules": policy_settings,
+    before_results["analysisSource"] = analysis_source
+
+    before_results["policyAnalysis"] = {
+        "rules": current_policy_settings,
         "riskSummary": ai_analysis["risk_summary"],
-        "recommendedChanges": ai_analysis["recommended_changes"],
+        "recommendedChanges": ai_analysis[
+            "recommended_changes"
+        ],
     }
 
-    return results
+    before_results["comparison"] = {
+        "before": {
+            "loopholesFound": before_results[
+                "loopholesFound"
+            ],
+            "genuineUsersRejected": before_results[
+                "genuineUsersRejected"
+            ],
+            "fraudSuccessRate": before_results[
+                "fraudSuccessRate"
+            ],
+            "bottlenecksFound": before_results[
+                "bottlenecksFound"
+            ],
+        },
+        "after": {
+            "loopholesFound": after_results[
+                "loopholesFound"
+            ],
+            "genuineUsersRejected": after_results[
+                "genuineUsersRejected"
+            ],
+            "fraudSuccessRate": after_results[
+                "fraudSuccessRate"
+            ],
+            "bottlenecksFound": after_results[
+                "bottlenecksFound"
+            ],
+        },
+        "improvements": {
+            "loopholesReducedBy": max(
+                0,
+                before_results["loopholesFound"]
+                - after_results["loopholesFound"],
+            ),
+            "genuineRejectionsReducedBy": max(
+                0,
+                before_results["genuineUsersRejected"]
+                - after_results["genuineUsersRejected"],
+            ),
+            "fraudRateReducedBy": round(
+                max(
+                    0,
+                    before_results["fraudSuccessRate"]
+                    - after_results["fraudSuccessRate"],
+                ),
+                1,
+            ),
+            "bottlenecksReducedBy": max(
+                0,
+                before_results["bottlenecksFound"]
+                - after_results["bottlenecksFound"],
+            ),
+        },
+        "improvedRules": improved_policy_settings,
+        "afterFindings": after_results["findings"],
+    }
+
+    return before_results
