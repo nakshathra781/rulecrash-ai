@@ -50,9 +50,10 @@ function App() {
     "vulnerable",
     "fraudster",
   ]);
-  const [simulationCount, setSimulationCount] = useState(100);
-  const [simulationResults, setSimulationResults] = useState(null);
-
+ const [simulationCount, setSimulationCount] = useState(100);
+const [simulationResults, setSimulationResults] = useState(null);
+const [isLoading, setIsLoading] = useState(false);
+const [simulationError, setSimulationError] = useState("");
   function savePolicy() {
     if (!policy.trim()) {
       alert("Please enter a refund policy.");
@@ -81,23 +82,43 @@ function App() {
       return [...currentPersonas, personaId];
     });
   }
-  function runSimulation() {
-  const hasFraudster = selectedPersonas.includes("fraudster");
-  const hasConfused = selectedPersonas.includes("confused");
-  const hasVulnerable = selectedPersonas.includes("vulnerable");
+  async function runSimulation() {
+  setIsLoading(true);
+  setSimulationError("");
 
-  const results = {
-    totalSimulations: simulationCount,
-    loopholesFound: hasFraudster ? 3 : 1,
-    genuineUsersRejected: hasVulnerable
-      ? Math.round(simulationCount * 0.14)
-      : Math.round(simulationCount * 0.04),
-    fraudSuccessRate: hasFraudster ? 12 : 0,
-    bottlenecksFound: hasConfused ? 2 : 1,
-  };
+  try {
+    const response = await fetch("http://127.0.0.1:8000/simulate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        policy: policy,
+        personas: selectedPersonas,
+        simulation_count: simulationCount,
+      }),
+    });
 
-  setSimulationResults(results);
-  setCurrentPage("results");
+    if (!response.ok) {
+      const errorData = await response.json();
+
+      throw new Error(
+        errorData.detail || "The simulation could not be completed."
+      );
+    }
+
+    const results = await response.json();
+
+    setSimulationResults(results);
+    setCurrentPage("results");
+  } catch (error) {
+    setSimulationError(
+      error.message ||
+        "Could not connect to the RuleCrash backend."
+    );
+  } finally {
+    setIsLoading(false);
+  }
 }
 if (currentPage === "results" && simulationResults) {
   return (
@@ -158,45 +179,31 @@ if (currentPage === "results" && simulationResults) {
             </article>
           </div>
 
-          <div className="issues-section">
-            <p className="section-label">Important findings</p>
+         <div className="issues-section">
+  <p className="section-label">Important findings</p>
 
-            <div className="issue-item">
-              <span className="issue-level critical">Critical</span>
+  {simulationResults.findings.length === 0 ? (
+    <p>No major risks were found.</p>
+  ) : (
+    simulationResults.findings.map((finding, index) => (
+      <div
+        className="issue-item"
+        key={`${finding.title}-${index}`}
+      >
+        <span
+          className={`issue-level ${finding.severity.toLowerCase()}`}
+        >
+          {finding.severity}
+        </span>
 
-              <div>
-                <h3>Possible duplicate refund path</h3>
-                <p>
-                  A customer may submit refund requests through the app and
-                  customer-support channel before either request is completed.
-                </p>
-              </div>
-            </div>
-
-            <div className="issue-item">
-              <span className="issue-level high">High</span>
-
-              <div>
-                <h3>Genuine customers can be rejected</h3>
-                <p>
-                  The current policy rejects every customer without an invoice,
-                  even when other valid proof of purchase is available.
-                </p>
-              </div>
-            </div>
-
-            <div className="issue-item">
-              <span className="issue-level medium">Medium</span>
-
-              <div>
-                <h3>Manager approval creates a bottleneck</h3>
-                <p>
-                  Every refund above ₹5,000 requires manager approval, which
-                  may create delays during high-volume periods.
-                </p>
-              </div>
-            </div>
-          </div>
+        <div>
+          <h3>{finding.title}</h3>
+          <p>{finding.description}</p>
+        </div>
+      </div>
+    ))
+  )}
+</div>
 
           <div className="results-actions">
             <button
@@ -372,9 +379,19 @@ if (currentPage === "results" && simulationResults) {
               </p>
             </div>
 
-            <button className="primary-button" onClick={runSimulation}>
-              Run Simulation
-            </button>
+            <div>
+  <button
+    className="primary-button"
+    onClick={runSimulation}
+    disabled={isLoading}
+  >
+    {isLoading ? "Running Simulation..." : "Run Simulation"}
+  </button>
+
+  {simulationError && (
+    <p className="simulation-error">{simulationError}</p>
+  )}
+</div>
           </div>
         </section>
       </main>
