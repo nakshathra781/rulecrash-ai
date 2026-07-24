@@ -737,3 +737,25 @@
   padding-left: 6px;
   line-height: 1.6;
 }
+.evidence-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.evidence-list span {
+  color: #8f9bb3;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.evidence-list code {
+  padding: 5px 9px;
+  border: 1px solid rgba(124, 108, 255, 0.3);
+  border-radius: 7px;
+  background: rgba(124, 108, 255, 0.1);
+  color: #c7c0ff;
+  font-size: 0.75rem;
+}
