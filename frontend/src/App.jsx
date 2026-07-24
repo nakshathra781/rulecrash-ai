@@ -199,11 +199,23 @@ if (currentPage === "results" && simulationResults) {
         <div>
           <h3>{finding.title}</h3>
           <p>{finding.description}</p>
+
+          {finding.evidence &&
+            finding.evidence.length > 0 && (
+              <div className="evidence-list">
+                <span>Evidence:</span>
+
+                {finding.evidence.map((caseId) => (
+                  <code key={caseId}>{caseId}</code>
+                ))}
+              </div>
+            )}
         </div>
       </div>
     ))
   )}
 </div>
+
 {simulationResults.policyAnalysis && (
   <section className="ai-analysis-panel">
     <div className="ai-analysis-header">
@@ -234,7 +246,6 @@ if (currentPage === "results" && simulationResults) {
     </div>
   </section>
 )}
-
           <div className="results-actions">
             <button
               className="secondary-button"
