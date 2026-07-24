@@ -215,7 +215,83 @@ if (currentPage === "results" && simulationResults) {
     ))
   )}
 </div>
+{simulationResults.comparison && (
+  <section className="comparison-panel">
+    <div className="comparison-header">
+      <div>
+        <p className="section-label">Before vs after</p>
+        <h3>Policy improvement impact</h3>
+      </div>
 
+      <span className="comparison-badge">
+        Same virtual customers
+      </span>
+    </div>
+
+    <p className="comparison-description">
+      RuleCrash tested the original and improved policies using the
+      same {simulationResults.totalSimulations} customer journeys.
+    </p>
+
+    <div className="comparison-grid">
+      <div className="comparison-column comparison-labels">
+        <strong>Risk metric</strong>
+        <span>Loopholes found</span>
+        <span>Genuine users rejected</span>
+        <span>Fraud success rate</span>
+        <span>Bottlenecks found</span>
+      </div>
+
+      <div className="comparison-column before-column">
+        <strong>Before</strong>
+
+        <span>
+          {simulationResults.comparison.before.loopholesFound}
+        </span>
+
+        <span>
+          {simulationResults.comparison.before.genuineUsersRejected}
+        </span>
+
+        <span>
+          {simulationResults.comparison.before.fraudSuccessRate}%
+        </span>
+
+        <span>
+          {simulationResults.comparison.before.bottlenecksFound}
+        </span>
+      </div>
+
+      <div className="comparison-arrow-column">
+        <strong>→</strong>
+        <span>→</span>
+        <span>→</span>
+        <span>→</span>
+        <span>→</span>
+      </div>
+
+      <div className="comparison-column after-column">
+        <strong>After</strong>
+
+        <span>
+          {simulationResults.comparison.after.loopholesFound}
+        </span>
+
+        <span>
+          {simulationResults.comparison.after.genuineUsersRejected}
+        </span>
+
+        <span>
+          {simulationResults.comparison.after.fraudSuccessRate}%
+        </span>
+
+        <span>
+          {simulationResults.comparison.after.bottlenecksFound}
+        </span>
+      </div>
+    </div>
+  </section>
+)}
 {simulationResults.policyAnalysis && (
   <section className="ai-analysis-panel">
     <div className="ai-analysis-header">
