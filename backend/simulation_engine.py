@@ -119,10 +119,15 @@ def run_simulation(
     personas: list[str],
     simulation_count: int,
     seed: int = 42,
+    policy_settings: dict | None = None,
 ) -> dict:
     """Run multiple customer journeys through the policy."""
 
-    settings = read_policy(policy)
+    settings = (
+    policy_settings
+    if policy_settings is not None
+    else read_policy(policy)
+)
     random_generator = random.Random(seed)
 
     genuine_rejections = 0

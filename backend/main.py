@@ -2,7 +2,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from simulation_engine import run_simulation
+from ai_service import analyze_policy
+from simulation_engine import read_policy, run_simulation
 
 
 app = FastAPI(
@@ -58,8 +59,62 @@ def simulate_workflow(request: SimulationRequest):
             detail=f"Invalid personas: {invalid_personas}",
         )
 
-    return run_simulation(
+    analysis_source = "gemini"
+
+    try:
+        ai_analysis = analyze_policy(request.policy)
+
+        policy_settings = {
+            "refund_days": ai_analysis["refund_days"],
+            "invoice_required": ai_analysis["invoice_required"],
+            "photo_required": ai_analysis["photo_required"],
+
+            # Gemini returns 0 when there is no manager threshold.
+            # The simulation engine expects None in that situation.
+            "manager_threshold": (
+                ai_analysis["manager_threshold"]
+                if ai_analysis["manager_threshold"] > 0
+                else None
+            ),
+
+            "single_refund_rule": ai_analysis[
+                "single_refund_rule"
+            ],
+            "alternative_proof_allowed": ai_analysis[
+                "alternative_proof_allowed"
+            ],
+            "cross_channel_protection": ai_analysis[
+                "cross_channel_protection"
+            ],
+        }
+
+    except Exception as error:
+        print(f"Gemini analysis failed: {error}")
+
+        analysis_source = "keyword_fallback"
+        policy_settings = read_policy(request.policy)
+
+        ai_analysis = {
+            "risk_summary": (
+                "Gemini was temporarily unavailable, so RuleCrash "
+                "used its local policy parser."
+            ),
+            "recommended_changes": [],
+        }
+
+    results = run_simulation(
         policy=request.policy,
         personas=request.personas,
         simulation_count=request.simulation_count,
+        policy_settings=policy_settings,
     )
+
+    results["analysisSource"] = analysis_source
+
+    results["policyAnalysis"] = {
+        "rules": policy_settings,
+        "riskSummary": ai_analysis["risk_summary"],
+        "recommendedChanges": ai_analysis["recommended_changes"],
+    }
+
+    return results
