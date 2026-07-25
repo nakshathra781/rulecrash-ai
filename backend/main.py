@@ -17,6 +17,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://rulecrash-ai.vercel.app"
+        "rulecrash-22vbqufy4-sona-s-projects10.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
