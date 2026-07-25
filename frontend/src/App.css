@@ -1,6 +1,6 @@
 .app {
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 15% 10%, rgba(71, 85, 255, 0.2), transparent 30%),
     radial-gradient(circle at 85% 30%, rgba(0, 210, 190, 0.12), transparent 32%),
@@ -45,14 +45,32 @@
   gap: 30px;
 }
 
-.navbar nav a {
+.nav-link {
+  position: relative;
+  padding: 8px 2px;
+  border: 0;
   color: #9ca9bd;
+  background: transparent;
+  font: inherit;
   font-size: 0.95rem;
+  cursor: pointer;
   transition: color 0.2s ease;
 }
 
-.navbar nav a:hover {
+.nav-link:hover,
+.nav-link.active {
   color: #ffffff;
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6c63ff, #28d6c2);
 }
 
 .new-workflow-button {
@@ -259,7 +277,7 @@
   letter-spacing: -0.05em;
 }
 
-.workflow-heading > p:last-child {
+.workflow-heading > p:not(.badge):not(.report-meta) {
   max-width: 680px;
   margin-top: 16px;
   color: #9ca9bd;
@@ -847,5 +865,215 @@
 
   .comparison-panel {
     padding: 18px;
+  }
+}
+
+/* Main dashboard navigation and pages */
+.dashboard-page {
+  width: min(1040px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 72px 0 100px;
+}
+
+.page-heading {
+  margin-bottom: 34px;
+}
+
+.page-heading .badge {
+  margin: 0 0 18px;
+}
+
+.page-heading h1 {
+  max-width: 760px;
+  margin: 0;
+  color: #f8fafc;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.page-heading > p:not(.badge) {
+  max-width: 700px;
+  margin: 16px 0 0;
+  color: #9ca9bd;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.workflow-library {
+  display: grid;
+  gap: 18px;
+}
+
+.workflow-card {
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28);
+}
+
+.workflow-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.workflow-card h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.55rem;
+}
+
+.workflow-status {
+  padding: 7px 12px;
+  border: 1px solid rgba(40, 214, 194, 0.3);
+  border-radius: 999px;
+  color: #78e6d9;
+  background: rgba(40, 214, 194, 0.08);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.workflow-card-description {
+  max-width: 720px;
+  margin: 20px 0 0;
+  color: #9ca9bd;
+  line-height: 1.7;
+}
+
+.workflow-meta {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.workflow-meta span {
+  padding: 8px 12px;
+  border: 1px solid rgba(108, 99, 255, 0.24);
+  border-radius: 999px;
+  color: #c9c7ff;
+  background: rgba(108, 99, 255, 0.1);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.workflow-actions {
+  margin-top: 28px;
+  padding-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.empty-report-panel {
+  padding: 54px 30px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28);
+}
+
+.empty-report-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6c63ff, #16c8b6);
+  box-shadow: 0 18px 40px rgba(108, 99, 255, 0.3);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.empty-report-panel h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.6rem;
+}
+
+.empty-report-panel > p {
+  max-width: 620px;
+  margin: 14px auto 0;
+  color: #9ca9bd;
+  line-height: 1.7;
+}
+
+.empty-report-actions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.demo-notice {
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid rgba(108, 99, 255, 0.28);
+  border-radius: 16px;
+  background: rgba(108, 99, 255, 0.09);
+}
+
+.demo-notice strong {
+  color: #f8fafc;
+}
+
+.demo-notice p {
+  max-width: 650px;
+  margin: 7px 0 0;
+  color: #aeb9d4;
+  line-height: 1.55;
+}
+
+.demo-notice .primary-button {
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+.report-meta {
+  margin: 12px 0 0;
+  color: #7f8da3;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 720px) {
+  .dashboard-page {
+    width: min(100% - 28px, 1040px);
+    padding-top: 48px;
+  }
+
+  .workflow-card {
+    padding: 22px;
+  }
+
+  .workflow-card-header,
+  .workflow-actions,
+  .demo-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workflow-actions {
+    justify-content: flex-start;
+  }
+
+  .empty-report-panel {
+    padding: 40px 20px;
+  }
+
+  .empty-report-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
